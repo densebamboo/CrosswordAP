@@ -1,0 +1,10 @@
+# Example CrosswordAP player YAML.
+# Duplicate this file (and adjust the player name) for additional players.
+
+name: Player
+game: CrosswordAP
+description: Crossword Archipelago player
+
+CrosswordAP:
+  total_words: 25
+  initial_clues: 6
