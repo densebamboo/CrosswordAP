@@ -14,7 +14,8 @@ func generate(
 	min_length: int,
 	max_words: int,
 	seed: int,
-	category_weights: Dictionary = {}
+	category_weights: Dictionary = {},
+	trim_result: bool = true
 ) -> Dictionary:
 	if word_list == null or rows <= 0 or cols <= 0:
 		return {}
@@ -117,7 +118,7 @@ func generate(
 	if placed_entries.size() < 2:
 		return {}
 
-	return _build_layout_result(board, placed_entries)
+	return _build_layout_result(board, placed_entries, trim_result)
 
 func _filtered_entries(entries: Array, min_length: int, rows: int, cols: int) -> Array:
 	var filtered: Array = []
@@ -420,7 +421,7 @@ func _shuffle_array(arr: Array, rng: RandomNumberGenerator) -> void:
 		arr[i] = arr[j]
 		arr[j] = temp
 
-func _build_layout_result(board: Array, entries: Array) -> Dictionary:
+func _build_layout_result(board: Array, entries: Array, trim_result: bool) -> Dictionary:
 	var rows: int = board.size()
 	if rows == 0:
 		return {}
@@ -429,6 +430,23 @@ func _build_layout_result(board: Array, entries: Array) -> Dictionary:
 		for c in range(cols):
 			if board[r][c] == "":
 				board[r][c] = "#"
+
+	if not trim_result:
+		# Return full-size board and mask without trimming
+		var mask_full: Array[String] = []
+		for r in range(rows):
+			var mask_row: String = ""
+			for c in range(cols):
+				if board[r][c] != "#":
+					mask_row += "."
+				else:
+					mask_row += "#"
+			mask_full.append(mask_row)
+		return {
+			"board": board,
+			"mask": mask_full,
+			"entries": entries,
+		}
 
 	var bounds: Dictionary = _find_letter_bounds(board)
 	if bounds.is_empty():

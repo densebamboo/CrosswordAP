@@ -30,13 +30,17 @@ enum PlayMode {
 @export var grid_rows: int = 15
 @export var grid_cols: int = 15
 @export var max_words: int = 40
+@export var min_words: int = 10
 @export var random_seed: int = 0
+@export var trim_generated_grid: bool = false
+@export var allow_fallback_word_list: bool = true
 @export_file("*.txt") var word_list_path: String = DEFAULT_WORD_LIST_PATH
 @export var auto_generate_on_ready: bool = false
 @export_range(0.0, 5.0, 0.1) var easy_word_weight: float = 0.7
 @export_range(0.0, 5.0, 0.1) var medium_word_weight: float = 1.2
 @export_range(0.0, 5.0, 0.1) var hard_word_weight: float = 0.7
 @export_range(0.0, 5.0, 0.1) var fallback_word_weight: float = 1.0
+@export_range(0.0, 1.0, 0.05) var weighting_strength: float = 0.3  # 0=uniform (most random), 1=use category weights
 
 var rows: int
 var cols: int
@@ -100,6 +104,7 @@ var ap_slot_data: Dictionary = {}
 var initial_reveal_override: int = INITIAL_REVEALED_CLUES
 var claimed_location_ids: Dictionary = {}
 var _status_locked: bool = false
+var _using_minimal_word_list: bool = false
 
 func _nav_log(msg: String) -> void:
 	if DEBUG_NAV:
@@ -117,6 +122,14 @@ func _ready() -> void:
 	down_list = get_node_or_null("Margin/Layout/DownPanel/DownScroll/DownList")
 	active_clue_label = get_node_or_null("Margin/Layout/CenterPanel/ActiveClue")
 	regenerate_button = get_node_or_null("Margin/Layout/CenterPanel/Controls/RegenerateButton")
+	if regenerate_button == null:
+		print("[DEBUG] Failed to find RegenerateButton at expected path")
+		# Try to find it by searching the scene tree
+		regenerate_button = _find_button_by_text("Generate")
+		if regenerate_button != null:
+			print("[DEBUG] Found RegenerateButton by searching for 'Generate' text")
+	else:
+		print("[DEBUG] Found RegenerateButton at expected path")
 	easy_words_toggle = get_node_or_null("Margin/Layout/CenterPanel/Controls/EasyWordsToggleContainer/EasyWordsToggle")
 	hard_words_toggle = get_node_or_null("Margin/Layout/CenterPanel/Controls/HardWordsToggleContainer/HardWordsToggle")
 	ap_host_input = get_node_or_null("Margin/Layout/CenterPanel/Controls/APControls/APHostInput")
@@ -165,7 +178,22 @@ func _ready() -> void:
 	grid_container.columns = grid_cols
 	grid_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	regenerate_button.pressed.connect(_on_regenerate_pressed)
+	
+	# Ensure the generate button is properly connected
+	if regenerate_button.pressed.is_connected(_on_regenerate_pressed):
+		print("[DEBUG] Generate button already connected")
+	else:
+		print("[DEBUG] Connecting generate button")
+		regenerate_button.pressed.connect(_on_regenerate_pressed)
+	
+	# Double-check the connection worked
+	if regenerate_button.pressed.is_connected(_on_regenerate_pressed):
+		print("[DEBUG] Generate button connection confirmed")
+	else:
+		push_error("Failed to connect generate button!")
+	
+	# Verify button state
+	print("[DEBUG] Generate button disabled: %s, visible: %s" % [str(regenerate_button.disabled), str(regenerate_button.visible)])
 
 	if easy_words_toggle != null:
 		easy_words_enabled = easy_words_toggle.button_pressed
@@ -844,10 +872,22 @@ func _handle_backspace_from_clue() -> void:
 				_focus_cell(prev, false)
 
 func _generate_puzzle() -> void:
+	print("[DEBUG] Generate button pressed")
 	if is_generating:
+		print("[DEBUG] Already generating, ignoring")
 		return
+	print("[DEBUG] Ensuring word list...")
 	if not _ensure_word_list():
+		print("[DEBUG] Failed to ensure word list")
 		return
+	print("[DEBUG] Word list loaded successfully")
+	# Surface word list size for parity diagnostics
+	var wl_count: int = 0
+	if word_list != null:
+		var wl_all: Array = word_list.get_all_entries()
+		if typeof(wl_all) == TYPE_ARRAY:
+			wl_count = wl_all.size()
+	_update_active_clue_message("Loaded word list (%d entries)" % wl_count)
 
 	is_generating = true
 
@@ -863,9 +903,19 @@ func _generate_puzzle() -> void:
 		return
 	initial_reveal_override = INITIAL_REVEALED_CLUES
 
+	# Enforce a minimum number of words in the generated puzzle
+	var min_required: int = clamp(min_words, 1, max_words)
+	# If using a tiny built-in fallback list, relax the minimum to improve success
+	if _using_minimal_word_list:
+		min_required = min(min_required, 6)
+
 	var layout: Dictionary = {}
 	var attempts := 0
-	var max_attempts := 5
+	var max_attempts: int
+	if _using_minimal_word_list:
+		max_attempts = 20
+	else:
+		max_attempts = 10
 	while attempts < max_attempts:
 		var attempt_seed := generator_seed
 		if generator_seed != 0:
@@ -877,16 +927,28 @@ func _generate_puzzle() -> void:
 			MIN_ENTRY_LENGTH,
 			max_words,
 			attempt_seed,
-			_build_category_weights()
+			_build_category_weights(),
+			trim_generated_grid
 		)
-		if not layout.is_empty():
+		var entries_arr: Array = layout.get("entries", [])
+		var entry_count: int = 0
+		if typeof(entries_arr) == TYPE_ARRAY:
+			entry_count = entries_arr.size()
+		if not layout.is_empty() and entry_count >= min_required:
 			break
 		attempts += 1
 
-	if layout.is_empty():
-		push_warning("Failed to generate crossword with current word list.")
-		is_generating = false
-		return
+	var final_entries: Array = layout.get("entries", [])
+	var final_count: int = 0
+	if typeof(final_entries) == TYPE_ARRAY:
+		final_count = final_entries.size()
+	if layout.is_empty() or final_count < min_required:
+		if not layout.is_empty() and final_count >= 2:
+			push_warning("Generated a smaller puzzle (%d words) below min %d due to constraints." % [final_count, min_required])
+		else:
+			push_warning("Failed to generate crossword with at least %d words (got %d). Try again or reduce min words." % [min_required, final_count])
+			is_generating = false
+			return
 
 	_apply_layout(layout)
 	is_generating = false
@@ -897,7 +959,10 @@ func _apply_layout(layout: Dictionary) -> void:
 
 	mask = layout.get("mask", [])
 	rows = mask.size()
-	cols = 0 if mask.is_empty() else mask[0].length()
+	if mask.is_empty():
+		cols = 0
+	else:
+		cols = mask[0].length()
 
 	if rows <= 0 or cols <= 0:
 		push_warning("Generated crossword layout is empty.")
@@ -1754,26 +1819,151 @@ func _on_hard_words_toggled(pressed: bool) -> void:
 	hard_words_enabled = pressed
 
 func _build_category_weights() -> Dictionary:
+	# Start from configured weights
 	var easy_weight: float = easy_word_weight
-	if not easy_words_enabled:
-		easy_weight = 0.0
 	var medium_weight: float = medium_word_weight
 	var hard_weight: float = hard_word_weight
+	var default_weight: float = fallback_word_weight
+	
+	# Apply toggles
+	if not easy_words_enabled:
+		easy_weight = 0.0
 	if not hard_words_enabled:
 		hard_weight = 0.0
-	var default_weight: float = fallback_word_weight
+	
+	# Blend toward 1.0 (uniform) to reduce favoritism
+	var s: float = clamp(weighting_strength, 0.0, 1.0)
+	var easy_eff: float = lerp(1.0, easy_weight, s)
+	var med_eff: float = lerp(1.0, medium_weight, s)
+	var hard_eff: float = lerp(1.0, hard_weight, s)
+	var def_eff: float = lerp(1.0, default_weight, s)
+	
 	return {
-		"EASY WORDS": easy_weight,
-		"MEDIUM WORDS": medium_weight,
-		"HARD WORDS": hard_weight,
-		"_default": default_weight,
+		"EASY WORDS": easy_eff,
+		"MEDIUM WORDS": med_eff,
+		"HARD WORDS": hard_eff,
+		"_default": def_eff,
 	}
 
 func _ensure_word_list() -> bool:
 	if word_list != null:
 		return true
+	
+	# Try the configured path first
 	word_list = WORD_LIST.from_file(word_list_path)
+	if word_list != null:
+		_using_minimal_word_list = false
+		print("[DEBUG] Loaded word list from configured path: %s" % word_list_path)
+		var wl_count := 0
+		var wl_all: Array = word_list.get_all_entries()
+		if typeof(wl_all) == TYPE_ARRAY:
+			wl_count = wl_all.size()
+		_update_active_clue_message("Loaded word list (%d entries)" % wl_count)
+		return true
+	
+	# Fallback to default path if the configured path fails
+	if word_list_path != DEFAULT_WORD_LIST_PATH:
+		print("Failed to load word list from '%s', trying default path '%s'" % [word_list_path, DEFAULT_WORD_LIST_PATH])
+		word_list = WORD_LIST.from_file(DEFAULT_WORD_LIST_PATH)
+		if word_list != null:
+			_using_minimal_word_list = false
+			print("[DEBUG] Loaded word list from default path: %s" % DEFAULT_WORD_LIST_PATH)
+			var wl_count := 0
+			var wl_all: Array = word_list.get_all_entries()
+			if typeof(wl_all) == TYPE_ARRAY:
+				wl_count = wl_all.size()
+			_update_active_clue_message("Loaded word list (%d entries)" % wl_count)
+			return true
+	
+	# Final fallback: try loading from user:// directory (in case file was copied there)
+	var user_path := "user://crossword_wordlist.txt"
+	print("Failed to load word list from res://, trying user path '%s'" % user_path)
+	word_list = WORD_LIST.from_file(user_path)
+	if word_list != null:
+		_using_minimal_word_list = false
+		print("Successfully loaded word list from user directory")
+		var wl_count := 0
+		var wl_all: Array = word_list.get_all_entries()
+		if typeof(wl_all) == TYPE_ARRAY:
+			wl_count = wl_all.size()
+		_update_active_clue_message("Loaded word list (%d entries)" % wl_count)
+		return true
+	
+	# Ultimate fallback: create a minimal in-memory word list (optional)
+	if not allow_fallback_word_list:
+		push_error("Word list not found. Falling back to a tiny built-in list. To avoid this, include assets/crossword_wordlist.txt in export.")
+		# Continue anyway to keep parity (both debug and export will at least generate something)
+	print("Creating minimal fallback word list")
+	word_list = _create_minimal_word_list()
+	_using_minimal_word_list = word_list != null
+	if _using_minimal_word_list:
+		var wl_all: Array = word_list.get_all_entries()
+		var wl_count := 0
+		if typeof(wl_all) == TYPE_ARRAY:
+			wl_count = wl_all.size()
+		_update_active_clue_message("Using fallback word list (%d entries)" % wl_count)
 	return word_list != null
+
+func _create_minimal_word_list() -> CrosswordWordList:
+	# Create a minimal word list in memory as final fallback
+	var minimal_list := CrosswordWordList.new()
+	# Add some basic words manually to ensure the game can still work
+	var basic_words: Dictionary[String, String] = {
+		"CAT": "Feline pet",
+		"DOG": "Canine pet", 
+		"BOOK": "Something you read",
+		"TREE": "Tall plant with trunk",
+		"WATER": "Clear liquid you drink",
+		"HOUSE": "Building where people live",
+		"APPLE": "Red or green fruit",
+		"CHAIR": "Furniture you sit on",
+		"TABLE": "Furniture for eating",
+		"LIGHT": "Opposite of darkness",
+		"PHONE": "Device for calling",
+		"BREAD": "Baked food staple",
+		"SMILE": "Happy facial expression",
+		"MUSIC": "Art made of sound",
+		"HEART": "Organ that pumps blood",
+		"PAPER": "You write on this",
+		"FLOWER": "Colorful plant part",
+		"WINDOW": "Glass opening in wall",
+		"BRIDGE": "Structure over water",
+		"SUMMER": "Hot season of year"
+	}
+	
+	for word_key in basic_words.keys():
+		var word_str: String = String(word_key)
+		var clue: String = String(basic_words[word_key])
+		var entry := {
+			"word": word_str,
+			"clue": clue,
+			"category": "EASY WORDS"
+		}
+		minimal_list.all_entries.append(entry)
+		
+		var length: int = word_str.length()
+		if not minimal_list.entries_by_length.has(length):
+			minimal_list.entries_by_length[length] = []
+		minimal_list.entries_by_length[length].append(entry)
+	
+	return minimal_list
+
+func _find_button_by_text(text: String) -> Button:
+	# Recursively search for a button with specific text
+	return _search_node_for_button(self, text)
+
+func _search_node_for_button(node: Node, text: String) -> Button:
+	if node is Button:
+		var button := node as Button
+		if button.text == text:
+			return button
+	
+	for child in node.get_children():
+		var result := _search_node_for_button(child, text)
+		if result != null:
+			return result
+	
+	return null
 
 func _print_debug_clues() -> void:
 	if across_entries.is_empty() and down_entries.is_empty():

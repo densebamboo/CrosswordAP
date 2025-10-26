@@ -25,6 +25,12 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_l7jj3")
 cell_scene = ExtResource("2_kl8jp")
+word_list_path = "res://assets/crossword_wordlist.txt"
+min_words = 10
+max_words = 40
+trim_generated_grid = false
+weighting_strength = 0.3
+random_seed = 123456
 easy_word_weight = 0.1
 hard_word_weight = 0.1
 
