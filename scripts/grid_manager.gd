@@ -1064,6 +1064,11 @@ func _build_grid_from_mask() -> void:
 
 	var block_style := StyleBoxFlat.new()
 	block_style.bg_color = Color.BLACK
+	# Borders off except for a 1px top border (to match white cells' top line)
+	block_style.border_color = Color.BLACK
+	block_style.set_border_width_all(0)
+	block_style.border_width_top = 1
+	block_style.anti_aliasing = false
 	grid_container.custom_minimum_size = Vector2(cols * cell_px, rows * cell_px)
 	grid_container.size = grid_container.custom_minimum_size
 	grid_container.position = Vector2.ZERO
@@ -1080,7 +1085,17 @@ func _build_grid_from_mask() -> void:
 				wrapper.add_theme_constant_override("margin_top", 2)
 				wrapper.add_theme_constant_override("margin_bottom", 2)
 				var block := Panel.new()
-				# Make the inner black square smaller (cell_px - 4) -> 2px gap on each side
+				# Fill the wrapper content area exactly (ensures same footprint as letter cells)
+				block.anchor_left = 0.0
+				block.anchor_top = 0.0
+				block.anchor_right = 1.0
+				block.anchor_bottom = 1.0
+				block.offset_left = 0.0
+				block.offset_top = 0.0
+				block.offset_right = 0.0
+				block.offset_bottom = 0.0
+				block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				block.size_flags_vertical = Control.SIZE_EXPAND_FILL
 				block.custom_minimum_size = Vector2(max(0, cell_px - 4), max(0, cell_px - 4))
 				block.add_theme_stylebox_override("panel", block_style)
 				wrapper.add_child(block)
@@ -1114,9 +1129,9 @@ func _build_grid_from_mask() -> void:
 			var input := cell.get_node_or_null("Panel/TextBox") as LineEdit
 			if input != null:
 				var box := StyleBoxFlat.new()
-				box.bg_color = Color.WHITE
-				box.border_color = Color.BLACK
-				box.set_border_width_all(1)
+				box.bg_color = Color(1, 1, 1, 0)
+				box.border_color = Color(0, 0, 0, 0)
+				box.set_border_width_all(0)
 				input.add_theme_stylebox_override("normal", box)
 				input.add_theme_stylebox_override("focus", box)
 

@@ -1,9 +1,17 @@
 [gd_scene load_steps=9 format=3 uid="uid://cs27w7mpr5eyo"]
 
-[ext_resource type="Texture2D" uid="uid://chc5oann27juq" path="res://assets/letterPanel.png" id="1_c7y65"]
 [ext_resource type="FontFile" uid="uid://dcfd60ylyf7n1" path="res://fonts/monogram.ttf" id="2_g24to"]
 [ext_resource type="Script" uid="uid://c1jfyhh03yaaf" path="res://scripts/text_box.gd" id="3_0ty6e"]
 [ext_resource type="Script" uid="uid://q0nv6oxud3o4" path="res://scripts/crossword_cell.gd" id="4_ekyr0"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_CellBorder"]
+bg_color = Color(1, 1, 1, 1)
+border_color = Color(0, 0, 0, 1)
+border_width_left = 0
+border_width_top = 1
+border_width_right = 0
+border_width_bottom = 0
+anti_aliasing = false
 
 [sub_resource type="LabelSettings" id="LabelSettings_a2ai8"]
 font = ExtResource("2_g24to")
@@ -23,6 +31,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("4_ekyr0")
+highlight_active_cell_color = Color(1, 0.9019608, 0.4, 0.78431374)
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 1
@@ -31,18 +40,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="TextureRect" type="TextureRect" parent="Panel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("1_c7y65")
+theme_override_styles/panel = SubResource("StyleBoxFlat_CellBorder")
 
 [node name="NumLabel" type="Label" parent="Panel"]
-z_index = 10
+z_index = 1000
 layout_mode = 1
 offset_left = 3.0
 offset_top = -1.0
@@ -72,6 +73,7 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
