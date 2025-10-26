@@ -92,6 +92,9 @@ func set_letter(letter: String, emit_signal: bool = false, normalize: bool = tru
 	_text.text = value
 	_text.caret_column = _text.text.length()
 	_suppress_text_signal = false
+	# If the cell is empty, clear any state overlay immediately
+	if value.strip_edges() == "":
+		set_state(CellState.NONE)
 	if DEBUG_NAV:
 		print_debug("[Cell %d,%d] set_letter normalize=%s value='%s'" % [row, col, str(normalize), value])
 

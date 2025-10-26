@@ -122,6 +122,16 @@ func _ready() -> void:
 	down_list = get_node_or_null("Margin/Layout/DownPanel/DownScroll/DownList")
 	active_clue_label = get_node_or_null("Margin/Layout/CenterPanel/ActiveClue")
 	regenerate_button = get_node_or_null("Margin/Layout/CenterPanel/Controls/RegenerateButton")
+
+	# Ensure overlays draw above the grid
+	if active_clue_label != null:
+		active_clue_label.z_index = 1000
+	var controls_container := get_node_or_null("Margin/Layout/CenterPanel/Controls") as Control
+	if controls_container != null:
+		controls_container.z_index = 1000
+	var cells_container_control := get_node_or_null("Margin/Layout/CenterPanel/CellsContainer") as Control
+	if cells_container_control != null:
+		cells_container_control.z_index = 0
 	if regenerate_button == null:
 		print("[DEBUG] Failed to find RegenerateButton at expected path")
 		# Try to find it by searching the scene tree
@@ -860,6 +870,10 @@ func _handle_backspace_from_clue() -> void:
 	if not cell.get_letter().is_empty():
 		_nav_log("clue_backspace cleared cell")
 		cell.set_letter("", true)
+		# Ensure the state overlay is cleared immediately
+		cell.set_state(CrosswordCell.CellState.NONE)
+		# Re-check entries touching this cell to clear any solved overlays
+		_check_entries_for_cell(current_cell)
 		_focus_cell(current_cell, false)
 		return
 	_nav_log("clue_backspace moving to previous cell")
@@ -969,6 +983,11 @@ func _apply_layout(layout: Dictionary) -> void:
 		return
 
 	grid_container.columns = cols
+	# Ensure no extra spacing from the container; we handle spacing via per-cell margins
+	grid_container.add_theme_constant_override("h_separation", 0)
+	grid_container.add_theme_constant_override("v_separation", 0)
+	# Don’t clip child content so overlays can render fully
+	grid_container.clip_contents = false
 	_build_grid_from_mask()
 
 	_assign_numbers()
@@ -1053,10 +1072,19 @@ func _build_grid_from_mask() -> void:
 		cells[r] = []
 		for c in range(cols):
 			if _is_block(r, c):
+				# Wrap block in a MarginContainer to create an even 2px gap on all sides
+				var wrapper := MarginContainer.new()
+				wrapper.custom_minimum_size = Vector2(cell_px, cell_px)
+				wrapper.add_theme_constant_override("margin_left", 2)
+				wrapper.add_theme_constant_override("margin_right", 2)
+				wrapper.add_theme_constant_override("margin_top", 2)
+				wrapper.add_theme_constant_override("margin_bottom", 2)
 				var block := Panel.new()
-				block.custom_minimum_size = Vector2(cell_px, cell_px)
+				# Make the inner black square smaller (cell_px - 4) -> 2px gap on each side
+				block.custom_minimum_size = Vector2(max(0, cell_px - 4), max(0, cell_px - 4))
 				block.add_theme_stylebox_override("panel", block_style)
-				grid_container.add_child(block)
+				wrapper.add_child(block)
+				grid_container.add_child(wrapper)
 				cells[r].append(null)
 				continue
 
@@ -1068,7 +1096,16 @@ func _build_grid_from_mask() -> void:
 				cells[r].append(null)
 				continue
 
-			cell.custom_minimum_size = Vector2(cell_px, cell_px)
+			# Wrap each letter cell to create a uniform 2px margin on all sides
+			var wrapper := MarginContainer.new()
+			wrapper.custom_minimum_size = Vector2(cell_px, cell_px)
+			wrapper.add_theme_constant_override("margin_left", 2)
+			wrapper.add_theme_constant_override("margin_right", 2)
+			wrapper.add_theme_constant_override("margin_top", 2)
+			wrapper.add_theme_constant_override("margin_bottom", 2)
+
+			# Inner cell size minus margins
+			cell.custom_minimum_size = Vector2(max(0, cell_px - 4), max(0, cell_px - 4))
 			cell.configure_coords(r, c)
 			cell.set_number_text("")
 			cell.set_letter("", false)
@@ -1087,7 +1124,8 @@ func _build_grid_from_mask() -> void:
 			cell.letter_input.connect(_on_cell_letter_input)
 			cell.navigation_requested.connect(_on_cell_navigation_requested)
 
-			grid_container.add_child(cell)
+			wrapper.add_child(cell)
+			grid_container.add_child(wrapper)
 			cells[r].append(cell)
 
 func _store_puzzle_results(slots: Array, assignments: Array, board: Array) -> void:
@@ -1537,10 +1575,10 @@ func _check_entries_for_cell(pos: Vector2i) -> void:
 	var options: Dictionary = cell_slot_lookup.get(pos, {})
 	for key in options.keys():
 		var entry: Dictionary = options[key]
-		if entry.get("solved", false):
-			continue
-		if _is_entry_solved(entry):
-			var entry_id: int = entry.get("id", -1)
+		var entry_id: int = entry.get("id", -1)
+		var was_solved: bool = entry.get("solved", false)
+		var now_solved: bool = _is_entry_solved(entry)
+		if now_solved and not was_solved:
 			print_debug("[APCheck] Entry solved id=%d number=%d loc_idx=%d" % [entry_id, entry.get("number", 0), int(entry.get("location_index", -1))])
 			entry["solved"] = true
 			entry_lookup[entry_id] = entry
@@ -1551,8 +1589,16 @@ func _check_entries_for_cell(pos: Vector2i) -> void:
 			emit_signal("entry_solved", entry_id, entry)
 			emit_signal("solved_count_changed", solved_entry_count)
 			_queue_save_progress()
-			# Check for puzzle completion in both offline and online modes
 			_send_goal_if_complete()
+		elif was_solved and not now_solved:
+			# Word was edited back to unsolved; clear overlays and update count (offline only)
+			entry["solved"] = false
+			entry_lookup[entry_id] = entry
+			if current_mode == PlayMode.OFFLINE:
+				_update_cells_for_entry(entry, false)
+			solved_entry_count = max(0, solved_entry_count - 1)
+			emit_signal("solved_count_changed", solved_entry_count)
+			_queue_save_progress()
 
 func _update_cells_for_entry(entry: Dictionary, solved: bool) -> void:
 	var cells_list: Array = entry.get("cells", []) as Array
@@ -1659,6 +1705,11 @@ func _on_cell_navigation_requested(row: int, col: int, offset: Vector2i, reason:
 	var origin := Vector2i(row, col)
 	match reason:
 		"backspace":
+			# Clear overlay on the origin cell if it is already blank
+			var origin_cell := cells[origin.x][origin.y] as CrosswordCell
+			if origin_cell != null and origin_cell.get_letter().is_empty():
+				origin_cell.set_state(CrosswordCell.CellState.NONE)
+				_check_entries_for_cell(origin)
 			if _advance(-1):
 				var prev := current_cell
 				if _is_in_bounds(prev):
@@ -1667,7 +1718,9 @@ func _on_cell_navigation_requested(row: int, col: int, offset: Vector2i, reason:
 						prev_cell.set_letter("", true)
 						player_grid[prev.x][prev.y] = ""
 						prev_cell.set_state(CrosswordCell.CellState.NONE)
-			return
+						# Re-evaluate any entries touching this cell so overlays clear when a word becomes unsolved
+						_check_entries_for_cell(prev)
+						return
 		"tab":
 			if offset.y < 0:
 				_select_previous_entry()
