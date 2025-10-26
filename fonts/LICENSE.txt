@@ -1,0 +1,13 @@
+Monogram — CC0 1.0 Universal (Public Domain Dedication)
+Creator: datagoblin
+
+Monogram is a free, monospace bitmap font dedicated to the public domain under CC0.
+No attribution is required. Donations to the creator are appreciated.
+
+Source:
+- Monogram by datagoblin (itch.io) — CC0. 
+  See project page for details and downloads.
+
+License text:
+You can copy, modify, distribute and perform the work, even for commercial purposes, all without asking permission.
+For the full legal code, see: https://creativecommons.org/publicdomain/zero/1.0/
