@@ -1064,10 +1064,9 @@ func _build_grid_from_mask() -> void:
 
 	var block_style := StyleBoxFlat.new()
 	block_style.bg_color = Color.BLACK
-	# Borders off except for a 1px top border (to match white cells' top line)
-	block_style.border_color = Color.BLACK
+	# No border on black blocks; keep footprint identical to white cells without lines
+	block_style.border_color = Color(0, 0, 0, 0)
 	block_style.set_border_width_all(0)
-	block_style.border_width_top = 1
 	block_style.anti_aliasing = false
 	grid_container.custom_minimum_size = Vector2(cols * cell_px, rows * cell_px)
 	grid_container.size = grid_container.custom_minimum_size
