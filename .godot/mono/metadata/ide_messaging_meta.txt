@@ -1,0 +1,2 @@
+﻿52022
+C:/Program Files/Godot/Godot_v4.5-stable_mono_win64.exe

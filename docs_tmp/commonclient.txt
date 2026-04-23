@@ -1,0 +1,215 @@
+Common Client &#8212; Archipelago 0.6.2 documentation
+Navigation
+index
+modules  |
+previous  |
+Archipelago 0.6.2 documentation  &#187;
+Common Client
+Common Client ¶
+class        CommonClient.    ClientCommandProcessor   (    ctx    :        CommonContext     )  ¶
+Bases:   CommandProcessor
+The Command Processor will parse every method of the class that starts with “_cmd_” as a command to be called
+when parsing user input, i.e. _cmd_exit will be called when the user sends the command “/exit”.
+The decorator &#64;mark_raw can be imported from MultiServer and tells the parser to only split on the first
+space after the command i.e. “/exit one two three” will be passed in as method(“one two three”) with mark_raw
+and method(“one”, “two”, “three”) without.
+In addition all docstrings for command methods will be displayed to the user on launch and when using “/help”
+commands     :      Dict   [   str   ,      Callable   ]         =      {'connect':   &lt;function   ClientCommandProcessor._cmd_connect&gt;,   'disconnect':   &lt;function   ClientCommandProcessor._cmd_disconnect&gt;,   'exit':   &lt;function   ClientCommandProcessor._cmd_exit&gt;,   'help':   &lt;function   CommandProcessor._cmd_help&gt;,   'item_groups':   &lt;function   ClientCommandProcessor._cmd_item_groups&gt;,   'items':   &lt;function   ClientCommandProcessor._cmd_items&gt;,   'license':   &lt;function   CommandProcessor._cmd_license&gt;,   'location_groups':   &lt;function   ClientCommandProcessor._cmd_location_groups&gt;,   'locations':   &lt;function   ClientCommandProcessor._cmd_locations&gt;,   'missing':   &lt;function   ClientCommandProcessor._cmd_missing&gt;,   'ready':   &lt;function   ClientCommandProcessor._cmd_ready&gt;,   'received':   &lt;function   ClientCommandProcessor._cmd_received&gt;}   ¶
+default   (    raw    :       str    )  ¶
+The default message parser to be used when parsing any messages that do not match a command
+output   (    text    :       str    )  ¶
+Helper function to abstract logging to the CommonClient UI
+class        CommonClient.    CommonContext   (    server_address    :       str      |      None       =       None   ,    password    :       str      |      None       =       None    )  ¶
+Bases:   object
+class        NameLookupDict   (    ctx    :        CommonContext    ,    lookup_type    :       Literal   [    'item'    ,       'location'    ]     )  ¶
+Bases:   object
+A specialized dict, with helper methods, for id -&gt; name item/location data package lookups by game.
+lookup_in_game   (    code    :       int   ,    game_name    :       str      |      None       =       None    )    &#x2192;    str    ¶
+Returns the name for an item/location id in the context of a specific game or own game if  game  is
+omitted.
+lookup_in_slot   (    code    :       int   ,    slot    :       int      |      None       =       None    )    &#x2192;    str    ¶
+Returns the name for an item/location id in the context of a specific slot or own slot if  slot  is
+omitted.
+Use of  lookup_in_slot  should not be used when not connected to a server. If looking in own game, set
+ctx.game  and use  lookup_in_game  method instead.
+update_game   (    game    :       str   ,    name_to_id_lookup_table    :       Dict   [   str   ,      int   ]     )    &#x2192;    None    ¶
+Overrides existing lookup tables for a particular game.
+auth     :      Optional   [   str   ]    ¶
+autoreconnect_task     :      Optional   [    'asyncio.Task[None]'    ]         =      None   ¶
+cancel_autoreconnect   (  )    &#x2192;    bool    ¶
+async        check_locations   (    locations    :       Collection   [   int   ]     )    &#x2192;    set   [   int   ]     ¶
+Send new location checks to the server. Returns the set of actually new locations that were sent.
+checked_locations     :      Set   [   int   ]    ¶
+command_processor   ¶
+alias of    ClientCommandProcessor
+async        connect   (    address    :       str      |      None       =       None    )    &#x2192;    None    ¶
+disconnect any previous connection, and open new connection to the server
+async        connection_closed   (  )  ¶
+async        console_input   (  )    &#x2192;    str    ¶
+consume_network_data_package   (    data_package    :       dict    )  ¶
+consume_players_package   (    package    :       List   [   tuple   ]     )  ¶
+current_energy_link_value     :      Optional   [   int   ]         =      None   ¶
+current_reconnect_delay     :      int        =      5   ¶
+async        disconnect   (    allow_autoreconnect    :       bool       =       False    )  ¶
+disconnected_intentionally     :      bool        =      False   ¶
+event_invalid_game   (  )  ¶
+event_invalid_slot   (  )  ¶
+finished_game     :      bool   ¶
+game     :      Optional   [   str   ]         =      None   ¶
+generator_version     :       Version         =      (0,   0,   0)   ¶
+async        get_username   (  )  ¶
+gui_error   (    title    :       str   ,    text    :       Union   [   Exception   ,      str   ]     )    &#x2192;    Optional   [    'kvui.MessageBox'    ]     ¶
+Displays an error messagebox in the loaded Kivy UI. Override if using a different UI framework
+handle_connection_loss   (    msg    :       str    )    &#x2192;    None    ¶
+Helper for logging and displaying a loss of connection. Must be called from an except block.
+hint_cost     :      Optional   [   int   ]    ¶
+hint_points     :      Optional   [   int   ]    ¶
+input_task     :      Optional   [    'asyncio.Task[None]'    ]         =      None   ¶
+is_echoed_chat   (    print_json_packet    :       dict    )    &#x2192;    bool    ¶
+Helper function for filtering out messages sent by self.
+is_uninteresting_item_send   (    print_json_packet    :       dict    )    &#x2192;    bool    ¶
+Helper function for filtering out ItemSend prints that do not concern the local player.
+items_handling     :      Optional   [   int   ]         =      None   ¶
+items_received     :      List   [    NetworkItem    ]    ¶
+keep_alive_task     :      Optional   [    'asyncio.Task[None]'    ]         =      None   ¶
+last_death_link     :      float        =      1745023670.0117362   ¶
+locations_checked     :      Set   [   int   ]    ¶
+locations_info     :      Dict   [   int   ,       NetworkItem    ]    ¶
+locations_scouted     :      Set   [   int   ]    ¶
+make_gui   (  )    &#x2192;    type   [   kvui.GameManager   ]     ¶
+To return the Kivy  App  class needed for  run_gui  so it can be overridden before being built
+Common changes are changing  base_title  to update the window title of the client and
+updating  logging_pairs  to automatically make new tabs that can be filled with their respective logger.
+ex.  logging_pairs.append((“Foo”, “Bar”))
+will add a “Bar” tab which follows the logger returned from  logging.getLogger(“Foo”)
+max_size     :      int        =      16777216   ¶
+missing_locations     :      Set   [   int   ]    ¶
+on_deathlink   (    data    :       Dict   [   str   ,      Any   ]     )    &#x2192;    None    ¶
+Gets dispatched when a new DeathLink is triggered by another linked player.
+on_package   (    cmd    :       str   ,    args    :       dict    )  ¶
+For custom package handling in subclasses.
+on_print   (    args    :       dict    )  ¶
+on_print_json   (    args    :       dict    )  ¶
+on_ui_command   (    text    :       str    )    &#x2192;    None    ¶
+Gets called by kivy when the user executes a command starting with  /  or  ! .
+The command processor is still called; this is just intended for command echoing.
+on_user_say   (    text    :       str    )    &#x2192;    str      |      None    ¶
+Gets called before sending a Say to the server from the user.
+Returned text is sent, or sending is aborted if None is returned.
+password     :      Optional   [   str   ]    ¶
+player_names     :      Dict   [   int   ,      str   ]    ¶
+async        prepare_data_package   (    relevant_games    :       Set   [   str   ]    ,    remote_date_package_versions    :       Dict   [   str   ,      int   ]    ,    remote_data_package_checksums    :       Dict   [   str   ,      str   ]     )  ¶
+Validate that all data is present for the current multiworld.
+Download, assimilate and cache missing data from the server.
+property        raw_text_parser     :       RawJSONtoTextParser    ¶
+ready     :      bool   ¶
+reset_server_state   (  )  ¶
+run_cli   (  )  ¶
+run_gui   (  )  ¶
+Import kivy UI system from make_gui() and start running it as self.ui_task.
+seed_name     :      Optional   [   str   ]    ¶
+async        send_connect   (    **    kwargs    :       Any    )    &#x2192;    None    ¶
+Send a  Connect  packet to log in to the server,
+additional keyword args can override any value in the connection packet
+async        send_death   (    death_text    :       str       =       ''    )  ¶
+Helper function to send a deathlink using death_text as the unique death cause string.
+async        send_msgs   (    msgs    :       List   [   Any   ]     )    &#x2192;    None    ¶
+msgs  JSON serializable
+server     :      Optional   [    Endpoint    ]         =      None   ¶
+server_address     :      Optional   [   str   ]    ¶
+async        server_auth   (    password_requested    :       bool       =       False    )  ¶
+server_locations     :      Set   [   int   ]    ¶
+server_task     :      Optional   [    'asyncio.Task[None]'    ]         =      None   ¶
+server_version     :       Version         =      (0,   0,   0)   ¶
+set_notify   (    *    keys    :       str    )    &#x2192;    None    ¶
+Subscribe to be notified of changes to selected data storage keys.
+The values can be accessed via the “stored_data” attribute of this context, which is a dictionary mapping the
+names of the data storage keys to the latest values received from the server.
+async        shutdown   (  )  ¶
+slot     :      Optional   [   int   ]    ¶
+slot_concerns_self   (    slot    )    &#x2192;    bool    ¶
+Helper function to abstract player groups, should be used instead of checking slot == self.slot directly.
+slot_info     :      Dict   [   int   ,       NetworkSlot    ]    ¶
+starting_reconnect_delay     :      int        =      5   ¶
+stored_data     :      Dict   [   str   ,      Any   ]    ¶
+stored_data_notification_keys     :      Set   [   str   ]    ¶
+property        suggested_address     :      str   ¶
+tags     :      Set   [   str   ]         =      {'AP'}   ¶
+team     :      Optional   [   int   ]    ¶
+property        total_locations     :      int      |      None   ¶
+Will return None until connected.
+ui     :      Optional   [    'kvui.GameManager'    ]         =      None   ¶
+ui_task     :      Optional   [    'asyncio.Task[None]'    ]         =      None   ¶
+update_data_package   (    data_package    :       dict    )  ¶
+async        update_death_link   (    death_link    :       bool    )  ¶
+Helper function to set Death Link connection tag on/off and update the connection if already connected.
+update_game   (    game_package    :       dict   ,    game    :       str    )  ¶
+update_hint   (    location    :       int   ,    finding_player    :       int   ,    status    :        HintStatus       |      None    )    &#x2192;    None    ¶
+update_permissions   (    permissions    :       Dict   [   str   ,      int   ]     )  ¶
+Internal method to parse and save server permissions from RoomInfo
+want_slot_data     :      bool        =      True   ¶
+async        CommonClient.    console_loop   (    ctx    :        CommonContext     )  ¶
+CommonClient.    get_base_parser   (    description    :       str      |      None       =       None    )  ¶
+Base argument parser to be reused for components subclassing off of CommonClient
+CommonClient.    handle_url_arg   (    args    :       argparse.Namespace   ,    parser    :       Optional   [   argparse.ArgumentParser   ]        =       None    )    &#x2192;    argparse.Namespace    ¶
+Parse the url arg “archipelago://name:pass&#64;host:port” from launcher into correct launch args for CommonClient
+If alternate data is required the urlparse response is saved back to args.url if valid
+async        CommonClient.    keep_alive   (    ctx    :        CommonContext    ,    seconds_between_checks    =    100    )  ¶
+some ISPs/network configurations drop TCP connections if no payload is sent (ignore TCP-keep-alive)
+so we send a payload to prevent drop and if we were dropped anyway this will cause an auto-reconnect.
+async        CommonClient.    process_server_cmd   (    ctx    :        CommonContext    ,    args    :       dict    )  ¶
+CommonClient.    run_as_textclient   (    *    args    )  ¶
+async        CommonClient.    server_autoreconnect   (    ctx    :        CommonContext     )  ¶
+async        CommonClient.    server_loop   (    ctx    :        CommonContext    ,    address    :       str      |      None       =       None    )    &#x2192;    None    ¶
+Table of Contents
+Get Started:
+Contributing Guidelines
+World Maintainer
+Style Guide
+Running From Source
+Adding Games
+apworld Specification
+Archipelago API
+Archipelago Options API
+Archipelago Settings API
+Entrance Randomization
+Network Protocol
+Archipelago Unit Testing API
+APWorld Dev FAQ
+Archipelago World Code Owners / Maintainers Document
+Code Reference:
+worlds.AutoWorld
+BaseClasses
+Options
+Rules Helpers
+Fill
+Entrance Rando
+Utils
+Patch
+Settings API
+NetUtils
+Test Bases
+Common Client
+ClientCommandProcessor
+CommonContext
+console_loop()
+get_base_parser()
+handle_url_arg()
+keep_alive()
+process_server_cmd()
+run_as_textclient()
+server_autoreconnect()
+server_loop()
+Previous topic
+Test Bases
+This Page
+Show Source
+Quick search
+Navigation
+index
+modules  |
+previous  |
+Archipelago 0.6.2 documentation  &#187;
+Common Client
+&#169; Copyright 2025, Archipelago.
+Created using  Sphinx  8.2.3.

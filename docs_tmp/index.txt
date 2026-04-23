@@ -1,0 +1,353 @@
+Archipelago API Reference &#8212; Archipelago 0.6.2 documentation
+Navigation
+index
+modules  |
+next  |
+Archipelago 0.6.2 documentation  &#187;
+Archipelago API Reference
+Archipelago API Reference ¶
+Archipelago is still under development, so the API is subject to change.
+Get Started ¶
+The first thing you should do to get started with Archipelago is to read the   Contributing Guidelines  , which cover
+the requirements of not only contributing to the main project, but the requirements and expectations of a world as well.
+Get Started:
+Contributing Guidelines
+World Maintainer
+Responsibilities
+Becoming a World Maintainer
+Dropping out
+Handling of Unmaintained Worlds
+Style Guide
+Generic
+Python Code
+Markdown
+HTML
+CSS
+JS
+Running From Source
+General
+Windows
+macOS
+Optional: A Link to the Past Enemizer
+Optional: SNI
+Optional: Git
+Running tests
+Adding Games
+Client
+World
+apworld Specification
+File Format
+Metadata
+Extra Data
+Caveats
+Archipelago API
+Language
+Coding style
+Docstrings
+Definitions
+Implementation
+Archipelago Options API
+Option Definitions
+Generic Option Classes
+Basic Option Classes
+More Advanced Options
+Archipelago Settings API
+Config File
+Global Settings
+World Settings
+Types
+Caveats
+Entrance Randomization
+Entrance randomization concepts
+Usage
+Implementation details
+Network Protocol
+Archipelago General Client
+Archipelago Protocol Packets
+Archipelago Unit Testing API
+Generic Tests
+Defining World Tests
+Running Tests
+APWorld Dev FAQ
+My game has a restrictive start that leads to fill errors
+I have multiple settings that change the item/location pool counts and need to balance them out
+I learned about indirect conditions in the world API document, but I want to know more. What are they and why are they necessary?
+I uploaded the generated output of my world to the webhost and webhost is erroring on corrupted multidata
+Archipelago World Code Owners / Maintainers Document
+Active Maintained Worlds
+Active Unmaintained Worlds
+Disabled Unmaintained Worlds
+Documentation
+Code Reference:
+worlds.AutoWorld
+World
+WebWorld
+BaseClasses
+CollectionState
+Entrance
+EntranceInfo
+EntranceType
+Group
+HasNameAndPlayer
+Item
+ItemClassification
+Location
+LocationProgressType
+MultiWorld
+PlandoOptions
+Region
+Spoiler
+ThreadBarrierProxy
+Tutorial
+get_seed()
+MultiWorld
+CollectionState
+Entrance
+Item
+Location
+Region
+Options
+Accessibility
+AssembleOptions
+BossMeta
+Choice
+CommonOptions
+ConnectionsMeta
+DeathLink
+DeathLinkMixin
+DefaultOnToggle
+ExcludeLocations
+FreeText
+FreezeValidKeys
+ItemDict
+ItemLinks
+ItemSet
+ItemsAccessibility
+LocalItems
+LocationSet
+NamedRange
+NonLocalItems
+NumericOption
+Option
+OptionDict
+OptionError
+OptionGroup
+OptionList
+OptionSet
+OptionsMetaProperty
+PerGameCommonOptions
+PlandoBosses
+PlandoConnection
+PlandoConnections
+PlandoText
+PlandoTexts
+PriorityLocations
+ProgressionBalancing
+Range
+Removed
+StartHints
+StartInventory
+StartInventoryPool
+StartLocationHints
+TextChoice
+Toggle
+VerifyKeys
+Visibility
+dump_player_options()
+generate_yaml_templates()
+get_option_groups()
+item_and_loc_options
+Rules Helpers
+add_item_rule()
+add_rule()
+allow_self_locking_items()
+exclusion_rules()
+forbid_item()
+forbid_items()
+forbid_items_for_player()
+item_name_in_location_names()
+item_name_in_locations()
+locality_needed()
+locality_rules()
+location_item_name()
+set_rule()
+Fill
+FillError
+accessibility_corrections()
+balance_multiworld_progression()
+distribute_early_items()
+distribute_items_restrictive()
+distribute_planned()
+fast_fill()
+fill_restrictive()
+flood_items()
+inaccessible_location_rules()
+remaining_fill()
+swap_location_item()
+sweep_from_pool()
+Entrance Rando
+ERPlacementState
+EntranceLookup
+EntranceRandomizationError
+bake_target_group_lookup()
+disconnect_entrance_for_randomization()
+randomize_entrances()
+Utils
+ByValue
+DeprecateDict
+KeyedDefaultDict
+RepeatableChain
+RestrictedUnpickler
+UniqueKeyLoader
+Version
+VersionException
+async_start()
+build_sphinx_docs()
+cache_argsless()
+cache_path()
+cache_self1()
+chaining_prefix()
+deprecate()
+format_SI_prefix()
+freeze_support()
+get_adjuster_settings()
+get_adjuster_settings_no_defaults()
+get_cert_none_ssl_context()
+get_default_adjuster_settings()
+get_file_safe_name()
+get_fuzzy_results()
+get_input_text_from_response()
+get_intended_text()
+get_options()
+get_public_ipv4()
+get_public_ipv6()
+get_text_after()
+get_text_between()
+get_unique_identifier()
+home_path()
+init_logging()
+int16_as_bytes()
+int32_as_bytes()
+is_frozen()
+is_iterable_except_str()
+is_kivy_running()
+load_data_package_for_checksum()
+local_path()
+messagebox()
+open_directory()
+open_file()
+open_filename()
+output_path()
+pc_to_snes()
+persistent_load()
+persistent_store()
+read_snes_rom()
+restricted_loads()
+snes_to_pc()
+store_data_package_for_checksum()
+stream_input()
+title_sorted()
+tkinter_center_window()
+tuplize_version()
+user_path()
+visualize_regions()
+Patch
+create_rom_file()
+Settings API
+Bool
+GeneralOptions
+GeneratorOptions
+Group
+LocalFilePath
+LocalFolderPath
+OptionalLocalFilePath
+OptionalLocalFolderPath
+OptionalUserFilePath
+OptionalUserFolderPath
+Path
+SNIOptions
+ServerOptions
+Settings
+UserFilePath
+UserFolderPath
+fmt_doc()
+get_settings()
+NetUtils
+ClientStatus
+Endpoint
+HandlerMeta
+Hint
+HintStatus
+JSONMessagePart
+JSONTypes
+JSONtoTextParser
+NetworkItem
+NetworkPlayer
+NetworkSlot
+Permission
+RawJSONtoTextParser
+SlotType
+add_json_hint_status()
+add_json_item()
+add_json_location()
+add_json_text()
+color()
+color_code()
+encode()
+get_any_version()
+Test Bases
+TestBase
+WorldTestBase
+Common Client
+ClientCommandProcessor
+CommonContext
+console_loop()
+get_base_parser()
+handle_url_arg()
+keep_alive()
+process_server_cmd()
+run_as_textclient()
+server_autoreconnect()
+server_loop()
+Table of Contents
+Get Started:
+Contributing Guidelines
+World Maintainer
+Style Guide
+Running From Source
+Adding Games
+apworld Specification
+Archipelago API
+Archipelago Options API
+Archipelago Settings API
+Entrance Randomization
+Network Protocol
+Archipelago Unit Testing API
+APWorld Dev FAQ
+Archipelago World Code Owners / Maintainers Document
+Code Reference:
+worlds.AutoWorld
+BaseClasses
+Options
+Rules Helpers
+Fill
+Entrance Rando
+Utils
+Patch
+Settings API
+NetUtils
+Test Bases
+Common Client
+Next topic
+Contributing Guidelines
+This Page
+Show Source
+Quick search
+Navigation
+index
+modules  |
+next  |
+Archipelago 0.6.2 documentation  &#187;
+Archipelago API Reference
+&#169; Copyright 2025, Archipelago.
+Created using  Sphinx  8.2.3.

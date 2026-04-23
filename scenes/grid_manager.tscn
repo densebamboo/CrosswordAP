@@ -1,0 +1,286 @@
+[gd_scene load_steps=11 format=3 uid="uid://n43335d2lwah"]
+
+[ext_resource type="Script" uid="uid://cjgjjnpeb41i6" path="res://scripts/grid_manager.gd" id="1_l7jj3"]
+[ext_resource type="PackedScene" uid="uid://cs27w7mpr5eyo" path="res://scenes/crossword_cell.tscn" id="2_kl8jp"]
+[ext_resource type="FontFile" uid="uid://dcfd60ylyf7n1" path="res://fonts/monogram.ttf" id="3_asofv"]
+[ext_resource type="FontFile" uid="uid://ikxuccm7ehc0" path="res://fonts/monogram-extended.ttf" id="4_k5l73"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_k5l73"]
+font = ExtResource("3_asofv")
+font_size = 32
+
+[sub_resource type="LabelSettings" id="LabelSettings_kgt2y"]
+font = ExtResource("3_asofv")
+font_size = 32
+
+[sub_resource type="LabelSettings" id="LabelSettings_asofv"]
+font = ExtResource("3_asofv")
+font_size = 32
+
+[sub_resource type="LabelSettings" id="LabelSettings_xbg4y"]
+font = ExtResource("4_k5l73")
+font_size = 32
+
+[sub_resource type="LabelSettings" id="LabelSettings_8x61y"]
+font = ExtResource("3_asofv")
+font_size = 32
+
+[sub_resource type="LabelSettings" id="LabelSettings_7hd2v"]
+font = ExtResource("3_asofv")
+font_size = 32
+
+[node name="GridManager" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_l7jj3")
+cell_scene = ExtResource("2_kl8jp")
+easy_word_weight = 0.1
+hard_word_weight = 0.1
+clue_solved_overlay_color = Color(0.101960786, 0.5411765, 0.21568628, 0.39215687)
+clue_new_overlay_color = Color(1, 0.8392157, 0, 0.3529412)
+background_gradient_top_color = Color(0.25760907, 0.25729576, 0.39515033, 1)
+background_gradient_bottom_color = Color(0.07776203, 0.08535186, 0.15645632, 1)
+background_gradient_angle_deg = 250.0
+
+[node name="BackgroundGradient" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="Layout" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="AcrossPanel" type="VBoxContainer" parent="Margin/Layout"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="AcrossLabel" type="Label" parent="Margin/Layout/AcrossPanel"]
+layout_mode = 2
+text = "Across"
+label_settings = SubResource("LabelSettings_k5l73")
+horizontal_alignment = 1
+
+[node name="AcrossScroll" type="ScrollContainer" parent="Margin/Layout/AcrossPanel"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="AcrossMargin" type="MarginContainer" parent="Margin/Layout/AcrossPanel/AcrossScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="AcrossList" type="VBoxContainer" parent="Margin/Layout/AcrossPanel/AcrossScroll/AcrossMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="TopSpacer" type="Control" parent="Margin/Layout/AcrossPanel/AcrossScroll/AcrossMargin/AcrossList"]
+layout_mode = 2
+
+[node name="CenterPanel" type="VBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="CellsContainer" type="CenterContainer" parent="Margin/Layout/CenterPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Cells" type="GridContainer" parent="Margin/Layout/CenterPanel/CellsContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+
+[node name="Controls" type="HBoxContainer" parent="Margin/Layout/CenterPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="APSection" type="VBoxContainer" parent="Margin/Layout/CenterPanel/Controls"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="APHostInput" type="LineEdit" parent="Margin/Layout/CenterPanel/Controls/APSection"]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Archipelago server URL (e.g. archipelago.gg or localhost)"
+tooltip_auto_translate_mode = 2
+theme_override_fonts/font = ExtResource("3_asofv")
+theme_override_font_sizes/font_size = 32
+text = "archipelago.gg"
+placeholder_text = "Server URL"
+max_length = 128
+expand_to_text_length = true
+horizontal_alignment = 1
+
+[node name="APControls" type="HBoxContainer" parent="Margin/Layout/CenterPanel/Controls/APSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="APPortInput" type="LineEdit" parent="Margin/Layout/CenterPanel/Controls/APSection/APControls"]
+layout_mode = 2
+size_flags_horizontal = 2
+tooltip_auto_translate_mode = 2
+theme_override_fonts/font = ExtResource("3_asofv")
+theme_override_font_sizes/font_size = 32
+placeholder_text = "Port"
+expand_to_text_length = true
+
+[node name="APNameInput" type="LineEdit" parent="Margin/Layout/CenterPanel/Controls/APSection/APControls"]
+layout_mode = 2
+size_flags_horizontal = 2
+tooltip_auto_translate_mode = 2
+theme_override_fonts/font = ExtResource("3_asofv")
+theme_override_font_sizes/font_size = 32
+placeholder_text = "Player"
+expand_to_text_length = true
+
+[node name="APPasswordInput" type="LineEdit" parent="Margin/Layout/CenterPanel/Controls/APSection/APControls"]
+layout_mode = 2
+size_flags_horizontal = 2
+tooltip_auto_translate_mode = 2
+theme_override_fonts/font = ExtResource("3_asofv")
+theme_override_font_sizes/font_size = 32
+placeholder_text = "Password"
+expand_to_text_length = true
+
+[node name="APConnectButton" type="Button" parent="Margin/Layout/CenterPanel/Controls/APSection/APControls"]
+layout_mode = 2
+tooltip_auto_translate_mode = 2
+theme_override_fonts/font = ExtResource("3_asofv")
+theme_override_font_sizes/font_size = 32
+text = "Connect"
+
+[node name="Spacer" type="Control" parent="Margin/Layout/CenterPanel/Controls"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="OfflineSection" type="VBoxContainer" parent="Margin/Layout/CenterPanel/Controls"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="OfflineLabel" type="Label" parent="Margin/Layout/CenterPanel/Controls/OfflineSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Offline Generation"
+label_settings = SubResource("LabelSettings_7hd2v")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="OfflineControls" type="HBoxContainer" parent="Margin/Layout/CenterPanel/Controls/OfflineSection"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="EasyWordsToggle" type="CheckButton" parent="Margin/Layout/CenterPanel/Controls/OfflineSection/OfflineControls"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_asofv")
+theme_override_font_sizes/font_size = 32
+button_pressed = true
+text = "Easy Words"
+
+[node name="HardWordsToggle" type="CheckButton" parent="Margin/Layout/CenterPanel/Controls/OfflineSection/OfflineControls"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_asofv")
+theme_override_font_sizes/font_size = 32
+button_pressed = true
+text = "Hard Words"
+
+[node name="RegenerateButton" type="Button" parent="Margin/Layout/CenterPanel/Controls/OfflineSection/OfflineControls"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_asofv")
+theme_override_font_sizes/font_size = 32
+text = "Generate"
+
+[node name="DownPanel" type="VBoxContainer" parent="Margin/Layout"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="DownLabel" type="Label" parent="Margin/Layout/DownPanel"]
+layout_mode = 2
+text = "Down"
+label_settings = SubResource("LabelSettings_kgt2y")
+horizontal_alignment = 1
+
+[node name="DownScroll" type="ScrollContainer" parent="Margin/Layout/DownPanel"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="DownMargin" type="MarginContainer" parent="Margin/Layout/DownPanel/DownScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="DownList" type="VBoxContainer" parent="Margin/Layout/DownPanel/DownScroll/DownMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="TopSpacer" type="Control" parent="Margin/Layout/DownPanel/DownScroll/DownMargin/DownList"]
+layout_mode = 2
+
+[node name="LetterHintCount" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 48.0
+offset_bottom = 74.0
+grow_horizontal = 2
+text = "Letter Hints"
+label_settings = SubResource("LabelSettings_asofv")
+horizontal_alignment = 1
+
+[node name="ActiveClue" type="Label" parent="."]
+custom_minimum_size = Vector2(1, 1)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 16.0
+offset_bottom = 42.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+text = "CrosswordAP"
+label_settings = SubResource("LabelSettings_xbg4y")
+horizontal_alignment = 1
+autowrap_mode = 2
+
